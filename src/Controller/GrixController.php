@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Contao\ArticleModel;
 use Contao\PageModel;
 
-class GrixController extends Controller
+class GrixController
 {
 
 
