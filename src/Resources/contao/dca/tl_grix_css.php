@@ -1,18 +1,6 @@
 <?php
 
-/**
- * Extension for Contao Open Source CMS
- *
- * Copyright (c) 2015 Craffft
- *
- * @package CssStyleSelector
- * @link    https://github.com/craffft/contao-css-style-selector
- * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
- */
 
-/**
- * Table tl_css_style_selector
- */
 $GLOBALS['TL_DCA']['tl_grix_css'] = array
 (
     // Config
@@ -76,7 +64,7 @@ $GLOBALS['TL_DCA']['tl_grix_css'] = array
                 'label'               => &$GLOBALS['TL_LANG']['tl_grix_css']['delete'],
                 'href'                => 'act=delete',
                 'icon'                => 'delete.gif',
-                'attributes'          => 'onclick="if(!confirm(\'' . $GLOBALS['TL_LANG']['MSC']['deleteConfirm'] . '\'))return false;Backend.getScrollOffset()"'
+                'attributes'          => 'onclick="if(!confirm(\'' . ($GLOBALS['TL_LANG']['tl_visitors_category']['deleteConfirm'] ?? null) . '\'))return false;Backend.getScrollOffset()"'
             ),
             'show' => array
             (

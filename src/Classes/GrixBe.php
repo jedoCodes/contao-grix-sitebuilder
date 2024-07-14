@@ -6,8 +6,8 @@
  * Copyright (c) 2017 Georg Preissl
  *
  * @package gp_grix
- * @link    http://www.georg-preissl.at
- * @license http://opensource.org/licenses/MIT MIT
+ * @link    https://www.georg-preissl.at
+ * @license https://opensource.org/licenses/MIT MIT
  */
 
 /**
@@ -29,38 +29,27 @@ class GrixBe extends \BackendModule
 
 		$this->loadLanguageFile('tl_grix'); 
 
-		/**
-		 * CSS & Javascripts
-		 */
+		// include CSS & Javascripts
 
 		if (TL_MODE=='BE')
 		{
-
-			if (!is_array($GLOBALS['TL_JAVASCRIPT']))
+			if (!isset($GLOBALS['TL_JAVASCRIPT']))
 			{
 				$GLOBALS['TL_JAVASCRIPT'] = array();
 			}
 		    // add "jQuery.noConflict()" at the beginning of TL_JAVASCRIPT
 			array_unshift($GLOBALS['TL_JAVASCRIPT'], 'bundles/georgpreisslcontaogrix/js/jquery.noconflict.js');
 
-		    // add the jquery-library at the beginning of TL_JAVASCRIPT
+		    // add the jquery library at the beginning of TL_JAVASCRIPT
 			array_unshift($GLOBALS['TL_JAVASCRIPT'], 'assets/jquery/js/jquery.min.js');
 
 			$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/georgpreisslcontaogrix/js/jquery-ui-1.12.1/jquery-ui.min.js';
 			$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/georgpreisslcontaogrix/js/grixElement.js';
 			$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/georgpreisslcontaogrix/js/grixLightbox.js';
-			$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/georgpreisslcontaogrix/js/test.js';
 			$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/georgpreisslcontaogrix/js/grix.js';
 			$GLOBALS['TL_CSS'][] = 'bundles/georgpreisslcontaogrix/css/grix_backend.css';
 			$GLOBALS["TL_CSS"][] = 'bundles/georgpreisslcontaogrix/css/bootstrap_backend.css';
-
-			// $GLOBALS['TL_BODY'][] = \Contao\Template::generateScriptTag('bundles/georgpreisslcontaogrix/js/file2.js', false, null);
-			$GLOBALS['TL_HEAD'][] = '<script type="module"  srd="bundles/georgpreisslcontaogrix/js/file1.js" ></script>';
-			$GLOBALS['TL_HEAD'][] = '<script type="module"  srd="bundles/georgpreisslcontaogrix/js/file2.js" ></script>';
-
-			
 		}
-
 
 
 		// get the id of the article to edit
@@ -68,35 +57,26 @@ class GrixBe extends \BackendModule
 		$id = \Input::get('id');
 
 
-		// if grix is activated in the backend-module-panel, show the help-template
-		if(!$id)
-		{
-			$objTemplate = new \BackendTemplate('mod_grix_help');
-			$this->Template = $objTemplate;
-			return;
-		}
-
-
 		// if the grixBeForm has been submitted, save js and html to the database
 		if (\Input::post('FORM_SUBMIT') == 'tl_grix')
 		{
 			// save the frontend html
-			$grixHtmlFrontend = $_POST['grixHtmlFrontend'];
-			$this->Database->prepare("UPDATE tl_article SET grixHtmlFrontend=? WHERE id=?")->execute($grixHtmlFrontend, $id);
+			$strGrixHtmlFrontend = $_POST['grixHtmlFrontend'];
+			$this->Database->prepare("UPDATE tl_article SET grixHtmlFrontend=? WHERE id=?")->execute($strGrixHtmlFrontend, $id);
 			
 			// save the js string
-			$grixJs = $_POST['grixJs'];
-			$this->Database->prepare("UPDATE tl_article SET grixJs=? WHERE id=?")->execute($grixJs, $id);
+			$strGrixJs = $_POST['grixJs'];
+			$this->Database->prepare("UPDATE tl_article SET grixJs=? WHERE id=?")->execute($strGrixJs, $id);
 
 			// save the CEsUsed value
-			$CEsUsed = $_POST['CEsUsed'];
-			$CEsUsed = json_decode($CEsUsed,TRUE);
-			$CEsUsed = serialize($CEsUsed);
-			$this->Database->prepare("UPDATE tl_article SET CEsUsed=? WHERE id=?")->execute($CEsUsed, $id);
+			$strCEsUsed = $_POST['CEsUsed'];
+			$arrCEsUsed = json_decode($strCEsUsed,TRUE);
+			$strCEsUsedSerialized = serialize($arrCEsUsed);
+			$this->Database->prepare("UPDATE tl_article SET CEsUsed=? WHERE id=?")->execute($strCEsUsedSerialized, $id);
 		}
 
 
-		// get all the CEs of this article used by Grix
+		// get all the content elements of this article used by Grix
 		$objCEsUsed = $this->Database->prepare("SELECT CEsUsed from tl_article WHERE id=?")->execute($id);
 		$arrCEsUsed = unserialize($objCEsUsed->CEsUsed);
 
@@ -148,11 +128,10 @@ class GrixBe extends \BackendModule
 		}
 
 
-		// get all the css-classes of this article
+		// get all the css classes of this article
 		$objClasses = GrixCssModel::findAll();
-		// $objClasses = null;
 
-		// store the css-classes in an array
+		// store the css classes in an array
 		$arrClasses = array();
 		if ($objClasses !== null)
 		{
@@ -168,25 +147,27 @@ class GrixBe extends \BackendModule
 		}
 
 
-		// get the grixJs of this article
-		$result = $this->Database->prepare("SELECT grixJs, title, pid FROM tl_article WHERE id=?")->execute($id);
+		// get the grixJs of the article
+		$result = $this->Database->prepare("SELECT grixJs, grixHtmlFrontend, title, pid FROM tl_article WHERE id=?")->execute($id);
 		$strData = $result->grixJs ? : '';
-		
-		// get the title of this article
-		$this->Template->articleTitle = $result->title;		 
-		$result = $this->Database->prepare("SELECT title FROM tl_page WHERE id=?")->execute($result->$pid);
-		$this->Template->pageTitle = $result->title;		 
-
 
 		$this->Template->id = $id;
 		$this->Template->data = $strData;
-		$this->Template->grixHtmlFrontend = $grixHtmlFrontend;
+		$this->Template->grixHtmlFrontend = $result->grixHtmlFrontend;
 
-		// id's of the used CEs
-		$this->Template->x = $arrCEsUsed;
+
+
+		// get the title of the article
+		$this->Template->articleTitle = $result->title;	
+		
+		// get the title of the page
+		$result = $this->Database->prepare("SELECT title FROM tl_page WHERE id=?")->execute($result->pid);
+		$this->Template->pageTitle = $result->title;		 
+
+		// id's of the used content elements
 		$this->Template->CEsUsed = json_encode($arrCEsUsed);
 
-		// html data of the content elements
+		// html data of the used content elements
 		$this->Template->ces = $arrCEsData;
 
 		// form action attribute
@@ -249,7 +230,6 @@ class GrixBe extends \BackendModule
 		}
 		else
 		{
-
 			$objArticles = $this->Database->prepare("SELECT a.id, a.pid, a.title, a.inColumn, p.title AS parent FROM tl_article a LEFT JOIN tl_page p ON p.id=a.pid ORDER BY parent, a.sorting")
 									   ->execute();
 		}
@@ -266,13 +246,15 @@ class GrixBe extends \BackendModule
 						$key = $objArticles->parent . ' (ID ' . $objArticles->pid . ')';
 						if ($id == $objArticles->id ) 
 						{
+							
 							// show the current edited article as first option in the dropdown
 							$arrCurrent = array();
-							$arrCurrent[$key][$objArticles->id] = $objArticles->title . ' (' . ($GLOBALS['TL_LANG']['tl_article'][$objArticles->inColumn] ?: $objArticles->inColumn) . ', ID ' . $objArticles->id . ')';
+							// $arrCurrent[$key][$objArticles->id] = $objArticles->title . ' (' . ($GLOBALS['TL_LANG']['tl_article'][$objArticles->inColumn] ?: $objArticles->inColumn) . ', ID ' . $objArticles->id . ')';
+							$arrCurrent[$key][$objArticles->id] = $objArticles->title . ' (ID ' . $objArticles->id . ')';
 							
 
 						} else {
-							$arrAlias[$key][$objArticles->id] = $objArticles->title . ' (' . ($GLOBALS['TL_LANG']['tl_article'][$objArticles->inColumn] ?: $objArticles->inColumn) . ', ID ' . $objArticles->id . ')';
+							$arrAlias[$key][$objArticles->id] = $objArticles->title . ' (ID ' . $objArticles->id . ')';
 
 						}
 					}
@@ -283,12 +265,9 @@ class GrixBe extends \BackendModule
 				$arrAlias = array_merge($arrCurrent, $arrAlias);
 			}
 		}
-		// printf('<pre>%s</pre>', print_r($arrAlias,true));
+		
 		return $arrAlias;
 	}
-
-
-
 
 
 
